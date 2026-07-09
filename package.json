@@ -1,6 +1,6 @@
 {
   "name": "@agenticros/start-slam",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "External ROS-node skill: start / stop / save RTAB-Map (or compatible) SLAM via ROS services.",
   "keywords": [
