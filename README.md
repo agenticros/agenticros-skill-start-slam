@@ -1,9 +1,10 @@
 # Start SLAM — RTAB-Map external skill
 
-AgenticROS skill that exposes `start_slam`, `stop_slam`, and `save_map` as **external** service capabilities. AgenticROS does **not** launch RTAB-Map — bring it up on the robot, then install this skill.
+AgenticROS skill that exposes ``start_slam`, `stop_slam`, `save_map`, and `load_map` as **external** service capabilities. AgenticROS does **not** launch RTAB-Map — bring it up on the robot, then install this skill.
 
 ```bash
-npx agenticros skills install chrismatthieu/start-slam
+npx agenticros skills install /start-slam
+# or: npx agenticros skills install chrismatthieu/start-slam
 # or: "skillRefs": ["chrismatthieu/start-slam"]
 ```
 
