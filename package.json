@@ -1,0 +1,132 @@
+{
+  "name": "agenticros-skill-start-slam",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "External ROS-node skill: start / stop / save RTAB-Map (or compatible) SLAM via ROS services.",
+  "keywords": [
+    "agenticros",
+    "ros2",
+    "slam",
+    "rtabmap",
+    "mapping"
+  ],
+  "homepage": "https://github.com/agenticros/agenticros-skill-start-slam#readme",
+  "bugs": {
+    "url": "https://github.com/agenticros/agenticros-skill-start-slam/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agenticros/agenticros-skill-start-slam.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "agenticros": {
+    "id": "start-slam",
+    "displayName": "Start SLAM",
+    "description": "Trigger RTAB-Map (or compatible) mapping via std_srvs. Bring up rtabmap_ros yourself; AgenticROS only calls the services.",
+    "categories": [
+      "mapping",
+      "navigation"
+    ],
+    "capabilities": [
+      {
+        "id": "start_slam",
+        "verb": "map",
+        "description": "Resume / start SLAM mapping (std_srvs/Empty on rtabmap/resume by default).",
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request body (Empty = {}).",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the service call succeeded."
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_ros",
+          "launch": "rtabmap.launch.py",
+          "service": "rtabmap/resume",
+          "msg_type": "std_srvs/srv/Empty"
+        }
+      },
+      {
+        "id": "stop_slam",
+        "verb": "map",
+        "description": "Pause SLAM mapping (std_srvs/Empty on rtabmap/pause by default).",
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request body (Empty = {}).",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the service call succeeded."
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_ros",
+          "service": "rtabmap/pause",
+          "msg_type": "std_srvs/srv/Empty"
+        }
+      },
+      {
+        "id": "save_map",
+        "verb": "map",
+        "description": "Trigger map save / database dump if your stack exposes a Trigger service (default rtabmap/reset_odom is a placeholder — override service name to match your bringup).",
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request; for std_srvs/Trigger use {}.",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the service call succeeded."
+          },
+          "message": {
+            "type": "string",
+            "description": "Trigger response message when applicable."
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_ros",
+          "service": "rtabmap/publish_map",
+          "msg_type": "std_srvs/srv/Empty"
+        }
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.7.0"
+  },
+  "author": "AgenticROS",
+  "license": "Apache-2.0"
+}
