@@ -1,5 +1,5 @@
 {
-  "name": "agenticros-skill-start-slam",
+  "name": "@agenticros-skills/start-slam",
   "version": "0.1.0",
   "type": "module",
   "description": "External ROS-node skill: start / stop / save RTAB-Map (or compatible) SLAM via ROS services.",
@@ -128,5 +128,8 @@
     "typescript": "^5.7.0"
   },
   "author": "AgenticROS",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }
