@@ -1,6 +1,6 @@
 {
   "name": "@agenticros/start-slam",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "External ROS-node skill: start / stop / save RTAB-Map (or compatible) SLAM via ROS services.",
   "keywords": [
@@ -118,6 +118,41 @@
           "kind": "external_ros_node",
           "package": "rtabmap_ros",
           "service": "rtabmap/publish_map",
+          "msg_type": "std_srvs/srv/Empty"
+        }
+      },
+      {
+        "id": "load_map",
+        "verb": "map",
+        "description": "Load a previously saved map / database if your stack exposes a Trigger or SetBool service (default rtabmap/trigger_new_map is a placeholder — override service name to match your bringup).",
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request body; for std_srvs/Trigger or Empty use {}.",
+            "optional": true
+          },
+          "goal": {
+            "type": "object",
+            "description": "Alias for request when calling via mission runner.",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the service call succeeded."
+          },
+          "message": {
+            "type": "string",
+            "description": "Service response message when applicable."
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_ros",
+          "service": "rtabmap/trigger_new_map",
           "msg_type": "std_srvs/srv/Empty"
         }
       }
