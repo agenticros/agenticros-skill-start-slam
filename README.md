@@ -60,13 +60,23 @@ Default service names match common `rtabmap_ros` / `rtabmap_slam` bringups. If y
 
 ## Requirements
 
-- `rtabmap_ros` (or compatible) running with the documented services
+- Apt: `ros-jazzy-rtabmap-ros` (or `ros-humble-rtabmap-ros`)
+- `rtabmap_ros` running with the documented services
 - Transport with service-call support (local DDS / rosbridge preferred; Zenoh depends on bridge config)
 - RGB-D (RealSense) or lidar topics already remapped in your RTAB-Map launch
 
 ## Operator bringup
 
 See **[Mapping a room](https://github.com/agenticros/agenticros/blob/main/docs/mapping.md)** in the AgenticROS repo (RealSense + RTAB-Map + Nav2, no AMCL).
+
+On Jazzy, install the stacks first:
+
+```bash
+sudo apt-get install -y \
+  ros-jazzy-navigation2 \
+  ros-jazzy-nav2-bringup \
+  ros-jazzy-rtabmap-ros
+```
 
 Short form:
 
