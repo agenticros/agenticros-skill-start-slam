@@ -1,8 +1,8 @@
 {
   "name": "@agenticros/start-slam",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
-  "description": "External ROS-node skill: start / stop / save RTAB-Map (or compatible) SLAM via ROS services.",
+  "description": "External ROS-node skill: start / stop / save / load RTAB-Map (or compatible) SLAM via ROS services.",
   "keywords": [
     "agenticros",
     "ros2",
@@ -32,7 +32,7 @@
   "agenticros": {
     "id": "start-slam",
     "displayName": "Start SLAM",
-    "description": "Trigger RTAB-Map (or compatible) mapping via std_srvs. Bring up rtabmap_ros yourself; AgenticROS only calls the services.",
+    "description": "RTAB-Map mapping lifecycle: resume/pause, database backup/load, and mapping vs localization mode. Bring up rtabmap_ros yourself; AgenticROS only calls the services.",
     "categories": [
       "mapping",
       "navigation"
@@ -41,7 +41,8 @@
       {
         "id": "start_slam",
         "verb": "map",
-        "description": "Resume / start SLAM mapping (std_srvs/Empty on rtabmap/resume by default).",
+        "description": "Resume SLAM mapping (std_srvs/Empty on rtabmap/resume).",
+        "optional": ["camera", "depth", "lidar"],
         "inputs": {
           "request": {
             "type": "object",
@@ -59,7 +60,7 @@
         "blocks_base": false,
         "implementation": {
           "kind": "external_ros_node",
-          "package": "rtabmap_ros",
+          "package": "rtabmap_slam",
           "launch": "rtabmap.launch.py",
           "service": "rtabmap/resume",
           "msg_type": "std_srvs/srv/Empty"
@@ -68,7 +69,8 @@
       {
         "id": "stop_slam",
         "verb": "map",
-        "description": "Pause SLAM mapping (std_srvs/Empty on rtabmap/pause by default).",
+        "description": "Pause SLAM mapping (std_srvs/Empty on rtabmap/pause).",
+        "optional": ["camera", "depth", "lidar"],
         "inputs": {
           "request": {
             "type": "object",
@@ -86,7 +88,7 @@
         "blocks_base": false,
         "implementation": {
           "kind": "external_ros_node",
-          "package": "rtabmap_ros",
+          "package": "rtabmap_slam",
           "service": "rtabmap/pause",
           "msg_type": "std_srvs/srv/Empty"
         }
@@ -94,46 +96,48 @@
       {
         "id": "save_map",
         "verb": "map",
-        "description": "Trigger map save / database dump if your stack exposes a Trigger service (default rtabmap/reset_odom is a placeholder — override service name to match your bringup).",
+        "description": "Snapshot the RTAB-Map database via rtabmap/backup (writes <database_path>.back, typically ~/.ros/rtabmap.db.back). Occupancy /map is published continuously; use nav2 map_saver_cli if you also need a PGM/YAML grid.",
+        "optional": ["camera", "depth", "lidar"],
         "inputs": {
           "request": {
             "type": "object",
-            "description": "Service request; for std_srvs/Trigger use {}.",
+            "description": "Service request; Empty = {}.",
             "optional": true
           }
         },
         "outputs": {
           "success": {
             "type": "boolean",
-            "description": "Whether the service call succeeded."
-          },
-          "message": {
-            "type": "string",
-            "description": "Trigger response message when applicable."
+            "description": "Whether the backup service call succeeded."
           }
         },
         "interruptible": true,
         "blocks_base": false,
         "implementation": {
           "kind": "external_ros_node",
-          "package": "rtabmap_ros",
-          "service": "rtabmap/publish_map",
+          "package": "rtabmap_slam",
+          "service": "rtabmap/backup",
           "msg_type": "std_srvs/srv/Empty"
         }
       },
       {
         "id": "load_map",
         "verb": "map",
-        "description": "Load a previously saved map / database if your stack exposes a Trigger or SetBool service (default rtabmap/trigger_new_map is a placeholder — override service name to match your bringup).",
+        "description": "Load an RTAB-Map database via rtabmap/load_database. Pass database_path (and optional clear). Then call set_localization_mode to navigate on that map.",
+        "optional": ["camera", "depth", "lidar"],
         "inputs": {
-          "request": {
-            "type": "object",
-            "description": "Service request body; for std_srvs/Trigger or Empty use {}.",
+          "database_path": {
+            "type": "string",
+            "description": "Absolute path to the .db file (e.g. /home/user/.ros/rtabmap.db)."
+          },
+          "clear": {
+            "type": "boolean",
+            "description": "Clear the in-memory map before loading (default true).",
             "optional": true
           },
-          "goal": {
+          "request": {
             "type": "object",
-            "description": "Alias for request when calling via mission runner.",
+            "description": "Full LoadDatabase request override ({ database_path, clear }).",
             "optional": true
           }
         },
@@ -141,18 +145,66 @@
           "success": {
             "type": "boolean",
             "description": "Whether the service call succeeded."
-          },
-          "message": {
-            "type": "string",
-            "description": "Service response message when applicable."
           }
         },
         "interruptible": true,
         "blocks_base": false,
         "implementation": {
           "kind": "external_ros_node",
-          "package": "rtabmap_ros",
-          "service": "rtabmap/trigger_new_map",
+          "package": "rtabmap_slam",
+          "service": "rtabmap/load_database",
+          "msg_type": "rtabmap_msgs/srv/LoadDatabase"
+        }
+      },
+      {
+        "id": "set_mapping_mode",
+        "verb": "map",
+        "description": "Switch RTAB-Map to mapping mode (rtabmap/set_mode_mapping).",
+        "optional": ["camera", "depth", "lidar"],
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request body (Empty = {}).",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_slam",
+          "service": "rtabmap/set_mode_mapping",
+          "msg_type": "std_srvs/srv/Empty"
+        }
+      },
+      {
+        "id": "set_localization_mode",
+        "verb": "map",
+        "description": "Switch RTAB-Map to localization mode (rtabmap/set_mode_localization). Use after save_map when Nav2 should treat the map as complete.",
+        "optional": ["camera", "depth", "lidar"],
+        "inputs": {
+          "request": {
+            "type": "object",
+            "description": "Service request body (Empty = {}).",
+            "optional": true
+          }
+        },
+        "outputs": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "interruptible": true,
+        "blocks_base": false,
+        "implementation": {
+          "kind": "external_ros_node",
+          "package": "rtabmap_slam",
+          "service": "rtabmap/set_mode_localization",
           "msg_type": "std_srvs/srv/Empty"
         }
       }
